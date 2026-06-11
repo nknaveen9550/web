@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premium Neon Snake</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:
+    radial-gradient(circle at top left,#0ff2 0%,transparent 40%),
+    radial-gradient(circle at bottom right,#ff00ff22 0%,transparent 40%),
+    #050510;
+    overflow:hidden;
+}
+
+.game-container{
+    text-align:center;
+}
+
+.title{
+    color:white;
+    font-size:40px;
+    margin-bottom:15px;
+    text-shadow:0 0 20px cyan;
+}
+
+.score-box{
+    width:500px;
+    margin:auto;
+    padding:12px;
+    margin-bottom:15px;
+    color:white;
+    font-size:22px;
+
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:15px;
+}
+
+canvas{
+    border-radius:20px;
+    box-shadow:
+    0 0 30px #00ffff,
+    0 0 60px #00ffff55;
+
+    background:
+    linear-gradient(135deg,#09091c,#101032);
+}
+
+#gameOver{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    color:white;
+    font-size:40px;
+    text-align:center;
+    display:none;
+}
+
+button{
+    margin-top:15px;
+    padding:12px 25px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    background:cyan;
+    color:black;
+    font-weight:bold;
+    font-size:18px;
+}
+</style>
+</head>
+<body>
+
+<div class="game-container">
+
+<h1 class="title">🐍 PREMIUM SNAKE</h1>
+
+<div class="score-box">
+Score: <span id="score">0</span>
+</div>
+
+<canvas id="game" width="500" height="500"></canvas>
+
+</div>
+
+<div id="gameOver">
+<h2>GAME OVER</h2>
+<p id="finalScore"></p>
+<button onclick="restartGame()">Play Again</button>
+</div>
+
+<script>
+
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+const box=20;
+let snake=[
+{x:10*box,y:10*box}
+];
+
+let food=randomFood();
+
+let score=0;
+
+let dx=box;
+let dy=0;
+
+let game;
+
+document.addEventListener("keydown",changeDirection);
+
+function randomFood(){
+return{
+x:Math.floor(Math.random()*25)*box,
+y:Math.floor(Math.random()*25)*box
+}
+}
+
+function changeDirection(e){
+
+if(e.key==="ArrowUp" && dy===0){
+dx=0;
+dy=-box;
+}
+
+if(e.key==="ArrowDown" && dy===0){
+dx=0;
+dy=box;
+}
+
+if(e.key==="ArrowLeft" && dx===0){
+dx=-box;
+dy=0;
+}
+
+if(e.key==="ArrowRight" && dx===0){
+dx=box;
+dy=0;
+}
+}
+
+function drawFood(){
+
+ctx.beginPath();
+ctx.fillStyle="#ff00ff";
+ctx.shadowColor="#ff00ff";
+ctx.shadowBlur=30;
+
+ctx.arc(
+food.x+box/2,
+food.y+box/2,
+8,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+ctx.closePath();
+}
+
+function drawSnake(){
+
+snake.forEach((part,index)=>{
+
+ctx.fillStyle=index===0?"#00ffff":"#00ff99";
+
+ctx.shadowColor="#00ffff";
+ctx.shadowBlur=20;
+
+ctx.fillRect(
+part.x+2,
+part.y+2,
+box-4,
+box-4
+);
+
+});
+}
+
+function collision(head,array){
+
+for(let i=0;i<array.length;i++){
+
+if(head.x===array[i].x &&
+head.y===array[i].y){
+return true;
+}
+}
+
+return false;
+}
+
+function draw(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+drawFood();
+drawSnake();
+
+let snakeX=snake[0].x+dx;
+let snakeY=snake[0].y+dy;
+
+if(
+snakeX<0 ||
+snakeY<0 ||
+snakeX>=canvas.width ||
+snakeY>=canvas.height ||
+collision(
+{x:snakeX,y:snakeY},
+snake
+)
+){
+clearInterval(game);
+
+document.getElementById("gameOver").style.display="block";
+document.getElementById("finalScore").innerHTML=
+"Score: "+score;
+return;
+}
+
+let newHead={
+x:snakeX,
+y:snakeY
+};
+
+if(
+snakeX===food.x &&
+snakeY===food.y
+){
+score++;
+document.getElementById("score").innerHTML=score;
+
+food=randomFood();
+
+}else{
+snake.pop();
+}
+
+snake.unshift(newHead);
+}
+
+function restartGame(){
+
+snake=[{x:10*box,y:10*box}];
+food=randomFood();
+score=0;
+
+document.getElementById("score").innerHTML=0;
+
+dx=box;
+dy=0;
+
+document.getElementById("gameOver").style.display="none";
+
+clearInterval(game);
+game=setInterval(draw,100);
+}
+
+game=setInterval(draw,100);
+
+</script>
+
+</body>
+</html>
